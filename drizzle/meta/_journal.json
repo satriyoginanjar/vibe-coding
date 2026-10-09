@@ -15,6 +15,13 @@
       "when": 1791530309029,
       "tag": "0001_orange_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791542772009,
+      "tag": "0002_robust_warhawk",
+      "breakpoints": true
     }
   ]
 }
