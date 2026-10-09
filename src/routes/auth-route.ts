@@ -1,0 +1,36 @@
+import { Elysia, t } from "elysia";
+import {
+  registerUserService,
+  UserAlreadyExistsError,
+} from "../services/auth-services";
+
+export const authRoute = new Elysia({ prefix: "/api/v1/auth" }).post(
+  "/register",
+  async ({ body, set }) => {
+    try {
+      await registerUserService(body);
+      set.status = 201;
+      return {
+        message: "User created successfully",
+      };
+    } catch (error) {
+      if (error instanceof UserAlreadyExistsError) {
+        set.status = 400;
+        return {
+          message: "User already exists",
+        };
+      }
+      set.status = 500;
+      return {
+        message: "Internal server error",
+      };
+    }
+  },
+  {
+    body: t.Object({
+      name: t.String(),
+      email: t.String(),
+      password: t.String(),
+    }),
+  }
+);
