@@ -13,6 +13,12 @@ export interface LoginDTO {
   password: string;
 }
 
+export interface CurrentUserDTO {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export class UserAlreadyExistsError extends Error {
   constructor(message = "User already exists") {
     super(message);
@@ -24,6 +30,13 @@ export class InvalidCredentialsError extends Error {
   constructor(message = "login gagal, email atau password anda salah") {
     super(message);
     this.name = "InvalidCredentialsError";
+  }
+}
+
+export class UnauthorizedError extends Error {
+  constructor(message = "unauthorized") {
+    super(message);
+    this.name = "UnauthorizedError";
   }
 }
 
@@ -85,4 +98,41 @@ export async function loginUserService({ email, password }: LoginDTO): Promise<s
   });
 
   return token;
+}
+
+export async function getCurrentUserService(token: string): Promise<CurrentUserDTO> {
+  if (!token) {
+    throw new UnauthorizedError();
+  }
+
+  // Find active session
+  const [activeSession] = await db
+    .select({
+      id: session.id,
+      userId: session.userId,
+    })
+    .from(session)
+    .where(eq(session.token, token))
+    .limit(1);
+
+  if (!activeSession) {
+    throw new UnauthorizedError();
+  }
+
+  // Find user by userId
+  const [user] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.id, activeSession.userId))
+    .limit(1);
+
+  if (!user) {
+    throw new UnauthorizedError();
+  }
+
+  return user;
 }
